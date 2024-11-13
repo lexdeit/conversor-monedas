@@ -1,49 +1,65 @@
-import java.util.Map;
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
+    // Lista de monedas disponibles para la conversión
+    private static final List<String> currencies = List.of("MXN", "USD", "EUR", "AUD", "NZD", "AED", "CAD");
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        String baseCurrency = "MXN";
+        boolean continueConversion = true;
 
-        System.out.println("===== Conversor de Moneda =====");
-        System.out.println("1. Convertir de MXN a USD");
-        System.out.println("2. Convertir de USD a MXN");
-        System.out.println("3. Convertir de MXN a EUR");
-        System.out.println("4. Convertir de EUR a MXN");
-        System.out.print("Seleccione una opción (1-4): ");
+        System.out.println("===== Bienvenido al Conversor de Moneda =====");
 
-        int option = scanner.nextInt();
-        String targetCurrency = "";
+        while (continueConversion) {
+            System.out.println("\nSeleccione la moneda de origen:");
+            String fromCurrency = selectCurrency(scanner);
 
-        switch (option) {
-            case 1 -> targetCurrency = "USD";
-            case 2 -> {
-                baseCurrency = "USD";
-                targetCurrency = "MXN";
+            System.out.println("Seleccione la moneda de destino:");
+            String toCurrency = selectCurrency(scanner);
+
+            System.out.print("Ingrese la cantidad a convertir: ");
+            double amount = scanner.nextDouble();
+
+            ConversionResult result = CurrencyConverter.getConversion(fromCurrency, toCurrency, amount);
+
+            if (result != null && "success".equals(result.getResult())) {
+                System.out.printf("Resultado: %.2f %s son %.2f %s (Tasa: %.4f)%n",
+                        amount, fromCurrency, result.getConversionResult(), toCurrency, result.getConversionRate());
+            } else {
+                System.out.println("Error: No se pudo obtener la tasa de cambio para la conversión solicitada.");
             }
-            case 3 -> targetCurrency = "EUR";
-            case 4 -> {
-                baseCurrency = "EUR";
-                targetCurrency = "MXN";
-            }
-            default -> {
-                System.out.println("Opción no válida.");
-                return;
-            }
+
+            // Pregunta si el usuario desea realizar otra conversión o salir
+            System.out.println("\n¿Desea realizar otra conversión?");
+            System.out.println("1. Sí");
+            System.out.println("2. No, salir");
+
+            int option;
+            do {
+                System.out.print("Seleccione una opción: ");
+                option = scanner.nextInt();
+            } while (option != 1 && option != 2);
+
+            // Si elige "2", termina el bucle
+            continueConversion = option == 1;
         }
 
-        System.out.print("Ingrese la cantidad a convertir: ");
-        double amount = scanner.nextDouble();
+        System.out.println("Gracias por usar el Conversor de Moneda. ¡Hasta luego!");
+    }
 
-        Map<String, Double> rates = CurrencyConverter.getRates(baseCurrency);
-        if (rates != null && rates.containsKey(targetCurrency)) {
-            double rate = rates.get(targetCurrency);
-            double result = CurrencyConverter.convertCurrency(amount, rate);
-            System.out.printf("Resultado: %.2f %s son %.2f %s%n", amount, baseCurrency, result, targetCurrency);
-        } else {
-            System.out.println("Error: No se pudo obtener la tasa de cambio para la conversión solicitada.");
+    private static String selectCurrency(Scanner scanner) {
+        // Muestra el menú de monedas de la lista y devuelve la moneda seleccionada
+        for (int i = 0; i < currencies.size(); i++) {
+            System.out.printf("%d. %s%n", i + 1, currencies.get(i));
         }
+
+        int choice;
+        do {
+            System.out.print("Seleccione una opción: ");
+            choice = scanner.nextInt();
+        } while (choice < 1 || choice > currencies.size());
+
+        return currencies.get(choice - 1);
     }
 }
